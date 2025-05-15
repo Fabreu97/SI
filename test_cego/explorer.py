@@ -58,10 +58,54 @@ class Explorer(AbstAgent):
         """
         # Check the neighborhood walls and grid limits
         obstacles = self.check_walls_and_lim()
-    
         # Loop until a CLEAR position is found
         while True:
+        
             # Get a random direction
+            if self.NAME[-1] == '1':
+                init_direction = 0
+                direction = init_direction
+                while(True):
+                    dx, dy = Explorer.AC_INCR[direction]
+                    if not self.map.in_map((self.x + dx, self.y + dy)):
+                        if obstacles[direction] == VS.CLEAR:
+                            return Explorer.AC_INCR[direction]
+                    direction = (direction + 1) % 8
+                    if init_direction == direction:
+                        break
+            elif(self.NAME[-1] == '2'):
+                init_direction = 2
+                direction = init_direction
+                while(True):
+                    dx, dy = Explorer.AC_INCR[direction]
+                    if not self.map.in_map((self.x + dx, self.y + dy)):
+                        if obstacles[direction] == VS.CLEAR:
+                            return Explorer.AC_INCR[direction]
+                    direction = (direction + 1) % 8
+                    if init_direction == direction:
+                        break
+            elif(self.NAME[-1] == '3'):
+                init_direction = 4
+                direction = init_direction
+                while(True):
+                    dx, dy = Explorer.AC_INCR[direction]
+                    if not self.map.in_map((self.x + dx, self.y + dy)):
+                        if obstacles[direction] == VS.CLEAR:
+                            return Explorer.AC_INCR[direction]
+                    direction = (direction + 1) % 8
+                    if init_direction == direction:
+                        break
+            elif(self.NAME[-1] == '4'):
+                init_direction = 6
+                direction = init_direction
+                while(True):
+                    dx, dy = Explorer.AC_INCR[direction]
+                    if not self.map.in_map((self.x + dx, self.y + dy)):
+                        if obstacles[direction] == VS.CLEAR:
+                            return Explorer.AC_INCR[direction]
+                    direction = (direction + 1) % 8
+                    if init_direction == direction:
+                        break
             direction = random.randint(0, 7)
             # Check if the corresponding position in walls_and_lim is CLEAR
             if obstacles[direction] == VS.CLEAR:
@@ -140,7 +184,7 @@ class Explorer(AbstAgent):
 
         # forth and back: go, read the vital signals and come back to the position
 
-        time_tolerance = 2* self.COST_DIAG * Explorer.MAX_DIFFICULTY + self.COST_READ
+        time_tolerance = 0.6 * self.TLIM #3 * self.COST_DIAG * Explorer.MAX_DIFFICULTY + self.COST_READ
 
         # keeps exploring while there is enough time
         if  self.walk_time < (self.get_rtime() - time_tolerance):

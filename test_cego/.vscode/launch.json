@@ -11,7 +11,7 @@
             "request": "launch",
             "program": "main.py",
             "console": "integratedTerminal",
-            "args": "datasets/data_42v_20x20 cfg_1"
+            "args": "datasets/data_430v_94x94 cfg_1"
         }
     ]
 }
