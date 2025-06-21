@@ -48,11 +48,36 @@ class Explorer(AbstAgent):
         self.map = Map()           # create a map for representing the environment
         self.victims = {}          # a dictionary of found victims: (seq): ((x,y), [<vs>])
                                    # the key is the seq number of the victim,(x,y) the position, <vs> the list of vital signals
-
+        self.visit_count = {}      # Quantidade de vezes que a posição foi visitada
         # put the current position - the base - in the map
         self.map.add((self.x, self.y), 1, VS.NO_VICTIM, self.check_walls_and_lim())
 
+        # Get a random direction
+        if self.NAME[-1] == '1':
+            self.init_direction = (1,0) # direita
+        elif(self.NAME[-1] == '2'):
+            self.init_direction = (-1,0) # esquerda
+        elif(self.NAME[-1] == '3'):
+            self.init_direction = (0,-1) # cima
+        elif(self.NAME[-1] == '4'):
+            self.init_direction = (0,1) # baixo
+
+    def _euclidean_distance(self, coord: tuple) -> float:
+        return math.sqrt(coord[0]**2 + coord[1]**2)
+
+    def _correct_direction(self, coord: tuple) -> int:
+        if ( (coord[0] * self.init_direction[0] + coord[1] * self.init_direction[1]) > 0):
+            return 1
+        return 0
+
     def get_next_position(self):
+        """
+            Algoritmo para ir para próxima posição determinado pela função abaixo:
+            valor = A * visit_count[coord + direction] + B * euclidian_distance[coord]
+                    + C * correct_direction
+        """
+
+
         """ Randomically, gets the next position that can be explored (no wall and inside the grid)
             There must be at least one CLEAR position in the neighborhood, otherwise it loops forever.
         """
@@ -60,7 +85,6 @@ class Explorer(AbstAgent):
         obstacles = self.check_walls_and_lim()
         # Loop until a CLEAR position is found
         while True:
-        
             # Get a random direction
             if self.NAME[-1] == '1':
                 init_direction = 0
