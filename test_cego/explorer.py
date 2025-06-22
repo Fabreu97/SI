@@ -69,7 +69,7 @@ class Explorer(AbstAgent):
         self.C = constant[2]
         self.D = constant[3]
         self.E = constant[4]
-        self.F = constant[4]
+        self.F = constant[5]
         global victims_found
         victims_found.clear()
         self.delta = None
