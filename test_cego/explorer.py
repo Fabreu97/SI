@@ -13,6 +13,8 @@ from vs.abstract_agent import AbstAgent
 from vs.constants import VS
 from map import Map
 
+victims_found = {}
+
 class Stack:
     def __init__(self):
         self.items = []
@@ -30,8 +32,7 @@ class Stack:
 class Explorer(AbstAgent):
     """ class attribute """
     MAX_DIFFICULTY = 1             # the maximum degree of difficulty to enter into a cell
-    
-    def __init__(self, env, config_file, resc):
+    def __init__(self, env, config_file, resc, constant):
         """ Construtor do agente random on-line
         @param env: a reference to the environment 
         @param config_file: the absolute path to the explorer's config file
@@ -51,6 +52,7 @@ class Explorer(AbstAgent):
         self.visit_count = {}      # Quantidade de vezes que a posição foi visitada
         # put the current position - the base - in the map
         self.map.add((self.x, self.y), 1, VS.NO_VICTIM, self.check_walls_and_lim())
+        self.visit_count[(0,0)] = 0
 
         # Get a random direction
         if self.NAME[-1] == '1':
@@ -61,6 +63,12 @@ class Explorer(AbstAgent):
             self.init_direction = (0,-1) # cima
         elif(self.NAME[-1] == '4'):
             self.init_direction = (0,1) # baixo
+        
+        self.A = constant[0]
+        self.B = constant[1]
+        self.C = constant[2]
+        global victims_found
+        victims_found.clear()
 
     def _euclidean_distance(self, coord: tuple) -> float:
         return math.sqrt(coord[0]**2 + coord[1]**2)
@@ -71,19 +79,39 @@ class Explorer(AbstAgent):
         return 0
 
     def get_next_position(self):
-        """
-            Algoritmo para ir para próxima posição determinado pela função abaixo:
-            valor = A * visit_count[coord + direction] + B * euclidian_distance[coord]
-                    + C * correct_direction
-        """
 
-
-        """ Randomically, gets the next position that can be explored (no wall and inside the grid)
-            There must be at least one CLEAR position in the neighborhood, otherwise it loops forever.
-        """
         # Check the neighborhood walls and grid limits
         obstacles = self.check_walls_and_lim()
         # Loop until a CLEAR position is found
+
+        """
+            Algoritmo para ir para próxima posição determinado pela função abaixo:
+            valor = A * visit_count[coord + direction] + B * euclidian_distance[coord]
+                    + C * objective_direction
+        """
+        value = {}
+        for i, delta in Explorer.AC_INCR.items():
+            if obstacles[i] == VS.CLEAR:
+                dx, dy = delta
+                future_position = (self.x + dx, self.y + dy)
+                if not self.map.in_map(future_position):
+                    visit_count = 0
+                else:
+                    visit_count = self.visit_count[future_position]
+                distance = self._euclidean_distance(future_position)
+                objective_direction = self._correct_direction(future_position)
+                value[i] = self.A * visit_count + self.B * distance + self.C * objective_direction
+        direction = max(value, key=value.get)
+        position = (Explorer.AC_INCR[direction][0] + self.x, Explorer.AC_INCR[direction][1] + self.y) 
+        if position in self.visit_count:
+            self.visit_count[position] += 1
+        else:
+            self.visit_count[position] = 1
+        return Explorer.AC_INCR[direction]
+        """ Randomically, gets the next position that can be explored (no wall and inside the grid)
+            There must be at least one CLEAR position in the neighborhood, otherwise it loops forever.
+        """
+        """
         while True:
             # Get a random direction
             if self.NAME[-1] == '1':
@@ -109,6 +137,7 @@ class Explorer(AbstAgent):
             # Check if the corresponding position in walls_and_lim is CLEAR
             if obstacles[direction] == VS.CLEAR:
                 return Explorer.AC_INCR[direction]
+        """
         
     def explore(self):
         # get an random increment for x and y       
@@ -145,10 +174,13 @@ class Explorer(AbstAgent):
             if seq != VS.NO_VICTIM:
                 vs = self.read_vital_signals()
                 self.victims[vs[0]] = ((self.x, self.y), vs)
+                global victims_found
+                if (self.x, self.y) not in victims_found:
+                    victims_found[(self.x, self.y)] = 1
                 #print(f"{self.NAME} Victim found at ({self.x}, {self.y}), rtime: {self.get_rtime()}")
                 #print(f"{self.NAME} Seq: {seq} Vital signals: {vs}")
             
-            # Calculates the difficulty of the visited cell
+            # Calculates the difficulty of the visited cell 
             difficulty = (rtime_bef - rtime_aft)
             if dx == 0 or dy == 0:
                 difficulty = difficulty / self.COST_LINE
