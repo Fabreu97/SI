@@ -18,9 +18,15 @@ def main(data_folder_name, config_ag_folder_name):
     MA: float
     MB: float
     MC: float
+    MD: float
+    ME: float
+    MF: float
     A: float
     B: float
     C: float
+    D: float
+    E: float
+    F: float
     lista = []
     with open("constant.txt", "r") as file:
         for line in file:
@@ -29,6 +35,9 @@ def main(data_folder_name, config_ag_folder_name):
     A = lista[1]
     B = lista[2]
     C = lista[3]
+    D = lista[4]
+    E = lista[5]
+    F = lista[6]
 
 
     while True:
@@ -50,28 +59,34 @@ def main(data_folder_name, config_ag_folder_name):
         for exp in range(1, 5):
             filename = f"explorer_{exp:1d}_config.txt"
             explorer_file = os.path.join(config_ag_folder, filename)
-            Explorer(env, explorer_file, master_rescuer, (A,B,C))
+            Explorer(env, explorer_file, master_rescuer, (A,B,C,D,E,F))
 
         # Run the environment simulator
         env.run()
-        A = random.uniform(-1, 1)
-        B = random.uniform(-1, 1)
-        C = random.uniform(-1, 1)
         if len(victims_found) > better:
             better = len(victims_found)
             MA = A
             MB = B
             MC = C
+            MD = D
+            ME = E
+            MF = F
             print(f"Vítimas encontradas: {len(victims_found)}")
             print(f"Best A: {MA}")
             print(f"Best B: {MB}")
             print(f"Best C: {MC}")
+            print(f"Best D: {MD}")
+            print(f"Best E: {ME}")
+            print(f"Best E: {MF}")
             try:
                 with open('constant.tmp', 'w') as file:
                     file.write(f"{better}\n")
                     file.write(f"{MA}\n")
                     file.write(f"{MB}\n")
                     file.write(f"{MC}\n")
+                    file.write(f"{MD}\n")
+                    file.write(f"{ME}\n")
+                    file.write(f"{MF}\n")
 
                 os.rename('constant.tmp', 'constant.txt')
             except KeyboardInterrupt:
@@ -80,6 +95,15 @@ def main(data_folder_name, config_ag_folder_name):
                     file.write(f"{MA}\n")
                     file.write(f"{MB}\n")
                     file.write(f"{MC}\n")
+                    file.write(f"{MD}\n")
+                    file.write(f"{ME}\n")
+                    file.write(f"{MF}\n")
+        A = random.uniform(-1, 1)
+        B = random.uniform(-1, 1)
+        C = random.uniform(-1, 1)
+        D = random.uniform(-1, 1)
+        E = random.uniform(-1, 1)
+        F = random.uniform(-1, 1)
         
 if __name__ == '__main__':
     """ To get data from a different folder than the default called data

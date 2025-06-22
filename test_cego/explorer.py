@@ -56,25 +56,31 @@ class Explorer(AbstAgent):
 
         # Get a random direction
         if self.NAME[-1] == '1':
-            self.init_direction = (1,0) # direita
+            self.init_direction = (1,-1) # cima direita
         elif(self.NAME[-1] == '2'):
-            self.init_direction = (-1,0) # esquerda
+            self.init_direction = (1,1) # baixo direita
         elif(self.NAME[-1] == '3'):
-            self.init_direction = (0,-1) # cima
+            self.init_direction = (-1,1) # baixo esquerda
         elif(self.NAME[-1] == '4'):
-            self.init_direction = (0,1) # baixo
+            self.init_direction = (-1,-1) # cima esquerda
         
         self.A = constant[0]
         self.B = constant[1]
         self.C = constant[2]
+        self.D = constant[3]
+        self.E = constant[4]
+        self.F = constant[4]
         global victims_found
         victims_found.clear()
+        self.delta = None
+        self.greater_distance = 1.0
+        self.max_visit = 1
 
     def _euclidean_distance(self, coord: tuple) -> float:
         return math.sqrt(coord[0]**2 + coord[1]**2)
 
     def _correct_direction(self, coord: tuple) -> int:
-        if ( (coord[0] * self.init_direction[0] + coord[1] * self.init_direction[1]) > 0):
+        if ( (coord[0] * self.init_direction[0] > 0) and (coord[1] * self.init_direction[1]) > 0):
             return 1
         return 0
 
@@ -96,48 +102,34 @@ class Explorer(AbstAgent):
                 future_position = (self.x + dx, self.y + dy)
                 if not self.map.in_map(future_position):
                     visit_count = 0
+                    unknown = 1
                 else:
                     visit_count = self.visit_count[future_position]
+                    unknown = 0
                 distance = self._euclidean_distance(future_position)
-                objective_direction = self._correct_direction(future_position)
-                value[i] = self.A * visit_count + self.B * distance + self.C * objective_direction
+                if distance > self.greater_distance:
+                    self.greater_distance = distance
+                distance = distance / self.greater_distance
+                objective_direction = self._correct_direction(delta)
+                correct_quadrant = self._correct_direction(future_position)
+                if self.delta is None:
+                    back = 0
+                else:
+                    if (self.delta + 4) % 8 == i:
+                        back = 1
+                    else:
+                        back = 0
+                value[i] = self.A * visit_count/self.max_visit + self.B * distance + self.C * objective_direction + self.D * unknown + self.E * back + self.F + correct_quadrant
         direction = max(value, key=value.get)
+        self.delta = direction
         position = (Explorer.AC_INCR[direction][0] + self.x, Explorer.AC_INCR[direction][1] + self.y) 
         if position in self.visit_count:
             self.visit_count[position] += 1
+            if self.visit_count[position] > self.max_visit:
+                self.max_visit = self.visit_count[position]
         else:
             self.visit_count[position] = 1
         return Explorer.AC_INCR[direction]
-        """ Randomically, gets the next position that can be explored (no wall and inside the grid)
-            There must be at least one CLEAR position in the neighborhood, otherwise it loops forever.
-        """
-        """
-        while True:
-            # Get a random direction
-            if self.NAME[-1] == '1':
-                init_direction = 0
-            elif(self.NAME[-1] == '2'):
-                init_direction = 2
-            elif(self.NAME[-1] == '3'):
-                init_direction = 4
-            elif(self.NAME[-1] == '4'):
-                init_direction = 6
-
-            direction = init_direction
-            while(True):
-                dx, dy = Explorer.AC_INCR[direction]
-                if not self.map.in_map((self.x + dx, self.y + dy)):
-                    if obstacles[direction] == VS.CLEAR:
-                        return Explorer.AC_INCR[direction]
-                direction = (direction + 1) % 8
-                if init_direction == direction:
-                    break
-                
-            direction = random.randint(0, 7)
-            # Check if the corresponding position in walls_and_lim is CLEAR
-            if obstacles[direction] == VS.CLEAR:
-                return Explorer.AC_INCR[direction]
-        """
         
     def explore(self):
         # get an random increment for x and y       
