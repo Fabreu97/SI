@@ -397,31 +397,30 @@ class Env:
         """ For each agent, print found victims and saved victims by severity
         This is what actually happened in the environment. Observe that the
         beliefs of the agents may be different."""      
-              
-        print("\n\n*** Final results per agent ***")
+        #print("\n\n*** Final results per agent ***")
         for body in self.agents:
-            print(f"\n[ Agent {body.mind.NAME} ]")
+            #print(f"\n[ Agent {body.mind.NAME} ]")
             if body._state == VS.DEAD:
                 print("This agent is dead, you should discard its results, but...")
 
             # Remaining time
-            print("\n*** Consumed time ***")
-            print(f"{body.mind.TLIM - body._rtime:.2f} of {body.mind.TLIM:.2f}")
+            #print("\n*** Consumed time ***")
+            #print(f"{body.mind.TLIM - body._rtime:.2f} of {body.mind.TLIM:.2f}")
         
             # Found victims
             found = body._get_found_victims()
-            self.__print_victims(found, "found","e", ident=5)
+            #self.__print_victims(found, "found","e", ident=5)
 
             # Saved victims
             saved = body._get_saved_victims()
             self.__print_victims(saved, "saved","s", ident=5)
- 
+
             
     def print_acum_results(self):
         """ Print found victims and saved victims by severity for all agents.
         This is what actually happened in the environment"""
 
-
+        """
         print("\n\n*** ACUMULATED RESULTS - FOR ALL AGENTS ***\n")
         print(f" *** Numbers of Victims in the Environment ***")
         print(f"   Critical victims    (V1) = {self.sev_label.count(1):3d}")
@@ -435,22 +434,22 @@ class Env:
         print(f"   CSV of nb. total of victims")
         print(f"   V1,V2,V3,V4,SG")
         print(f"   {self.sev_label.count(1)},{self.sev_label.count(2)},{self.sev_label.count(3)},{self.sev_label.count(4)},{self.sum_gravity}")
-
+        """
         found = []
         for index, agents in enumerate(self.found, start=0):
             if agents:
                 found.append(index)
-        print(f"")
-        print(f" *** FOUND victims by all explorer agents ***")
+        #print(f"")
+        #print(f" *** FOUND victims by all explorer agents ***")
         self.__print_victims(found, "found", "e", ident=5)
     
         saved = []
         for index, agents in enumerate(self.saved, start=0):
             if agents:
                 saved.append(index)
-        print(f"")
-        print(f" *** SAVED victims by all rescuer agents ***")
+        #print(f"")
+        #print(f" *** SAVED victims by all rescuer agents ***")
         self.__print_victims(saved, "saved", "s", ident=5)
-        print(f"\n *** END OF STATS ***")
+        #print(f"\n *** END OF STATS ***")
 
 

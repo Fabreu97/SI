@@ -70,6 +70,7 @@ class Explorer(AbstAgent):
         self.D = constant[3]
         self.E = constant[4]
         self.F = constant[5]
+        self.G = constant[6]
         global victims_found
         victims_found.clear()
         self.delta = None
@@ -83,6 +84,17 @@ class Explorer(AbstAgent):
         if ( (coord[0] * self.init_direction[0] > 0) and (coord[1] * self.init_direction[1]) > 0):
             return 1
         return 0
+    
+    def _correct_quadrant(self, coord: tuple) -> int:
+        if ( (coord[0] * self.init_direction[0] > 0) and (coord[1] * self.init_direction[1]) > 0):
+            return 1
+        elif(coord[0] == 0 and (coord[1] * self.init_direction[1]) > 0):
+            return self.G # vizinho
+        elif(coord[1] == 0 and (coord[0] * self.init_direction[0]) > 0):
+            return self.G # vizinho
+        return 0
+
+    
 
     def get_next_position(self):
 
@@ -111,7 +123,7 @@ class Explorer(AbstAgent):
                     self.greater_distance = distance
                 distance = distance / self.greater_distance
                 objective_direction = self._correct_direction(delta)
-                correct_quadrant = self._correct_direction(future_position)
+                correct_quadrant = self._correct_quadrant(future_position)
                 if self.delta is None:
                     back = 0
                 else:
@@ -207,7 +219,7 @@ class Explorer(AbstAgent):
 
         # forth and back: go, read the vital signals and come back to the position
 
-        time_tolerance = 0.6 * self.TLIM #3 * self.COST_DIAG * Explorer.MAX_DIFFICULTY + self.COST_READ
+        time_tolerance = 0.5 * self.TLIM #3 * self.COST_DIAG * Explorer.MAX_DIFFICULTY + self.COST_READ
 
         # keeps exploring while there is enough time
         if  self.walk_time < (self.get_rtime() - time_tolerance):
