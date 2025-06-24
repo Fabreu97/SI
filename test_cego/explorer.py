@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from vs.abstract_agent import AbstAgent
 from vs.constants import VS
 from map import Map
+import heapq
 
 victims_found = {}
 
@@ -28,6 +29,38 @@ class Stack:
 
     def is_empty(self):
         return len(self.items) == 0
+# A* node
+class Node:
+    def __init__(self, x, y, g_cost, h_cost, pai=None):
+        self.x = x
+        self.y = y
+        self.g_cost = g_cost
+        self.h_cost = h_cost
+        self.f_cost = g_cost + h_cost
+        self.pai = pai
+
+    # Método para comparação de nós na fila de prioridade (heapq)
+    # Compara com base no f_custo. Se iguais, compara pelo h_custo (desempate)
+    def __lt__(self, other):
+        return self.f_cost < other.f_cost
+
+    # Método para representação do nó (útil para depuração)
+    def __repr__(self):
+        # Ajustado para usar g_cost, conforme o atributo real da classe Node
+        return f"Node(x={self.x},y={self.y}|F:{self.f_cost}|G:{self.g_cost})"
+
+    # Distância de Manhattan ao destino fixo (0,0)
+    def manhattan(self):
+        return abs(self.x - 0) + abs(self.y - 0)
+
+# Reconstrói o caminho do destino até a origem usando os 'pais'
+def reconstruir_caminho(no_destino):
+    caminho = []
+    atual = no_destino
+    while atual is not None:
+        caminho.append((atual.x, atual.y))
+        atual = atual.pai
+    return caminho[::-1] # Inverte a lista para ter da origem ao destino
 
 class Explorer(AbstAgent):
     """ class attribute """
@@ -51,6 +84,16 @@ class Explorer(AbstAgent):
                                    # the key is the seq number of the victim,(x,y) the position, <vs> the list of vital signals
         self.visit_count = {}      # Quantidade de vezes que a posição foi visitada
         # put the current position - the base - in the map
+
+        # Atributos para o A*
+        self.a_star_open_list = []      # Fila de prioridade para o A*
+        self.a_star_closed_list = set() # Conjunto de nós já processados
+        self.a_star_g_costs = {}        # Dicionário: (x,y) -> g_cost mínimo encontrado
+        self.a_star_path = None         # O caminho final encontrado pelo A*
+        self.a_star_path_index = 0      # Índice para seguir o caminho passo a passo
+        self.a_star_started = False     # Flag para indicar se o A* já iniciou
+
+
         self.map.add((self.x, self.y), 1, VS.NO_VICTIM, self.check_walls_and_lim())
         self.visit_count[(0,0)] = 0
 
@@ -93,8 +136,6 @@ class Explorer(AbstAgent):
         elif(coord[1] == 0 and (coord[0] * self.init_direction[0]) > 0):
             return self.G # vizinho
         return 0
-
-    
 
     def get_next_position(self):
 
@@ -198,28 +239,79 @@ class Explorer(AbstAgent):
         return
 
     def come_back(self):
-        dx, dy = self.walk_stack.pop()
-        dx = dx * -1
-        dy = dy * -1
+        DEST_X, DEST_Y = 0, 0
 
-        result = self.walk(dx, dy)
-        if result == VS.BUMPED:
-            print(f"{self.NAME}: when coming back bumped at ({self.x+dx}, {self.y+dy}) , rtime: {self.get_rtime()}")
+        # If following a precomputed path, take next step
+        if self.a_star_path is not None and self.a_star_path_index < len(self.a_star_path):
+            next_x, next_y = self.a_star_path[self.a_star_path_index]
+            dx = next_x - self.x
+            dy = next_y - self.y
+            result = self.walk(dx, dy)
+            if result == VS.EXECUTED:
+                self.x, self.y = next_x, next_y
+                self.a_star_path_index += 1
+            else:
+                # Collision or invalid path, reset to recompute
+                self.a_star_started = False
+                self.a_star_path = None
+                self.a_star_path_index = 0
             return
-        
-        if result == VS.EXECUTED:
-            # update the agent's position relative to the origin
-            self.x += dx
-            self.y += dy
-            #print(f"{self.NAME}: coming back at ({self.x}, {self.y}), rtime: {self.get_rtime()}")
-        
+
+        # Initialize A* search if not already started
+        if not self.a_star_started:
+            self.a_star_open_list = []
+            self.a_star_closed_list = set()
+            self.a_star_g_costs = {}
+            # Start node
+            start_h = abs(self.x - DEST_X) + abs(self.y - DEST_Y)
+            start_node = Node(self.x, self.y, 0, start_h)
+            heapq.heappush(self.a_star_open_list, start_node)
+            self.a_star_g_costs[(self.x, self.y)] = 0
+            self.a_star_started = True
+
+            # If already at destination, set trivial path
+            if self.x == DEST_X and self.y == DEST_Y:
+                self.a_star_path = [(DEST_X, DEST_Y)]
+                self.a_star_path_index = 1
+                return
+
+        # Perform one A* iteration
+        if self.a_star_open_list:
+            current = heapq.heappop(self.a_star_open_list)
+            if (current.x, current.y) in self.a_star_closed_list:
+                return
+            self.a_star_closed_list.add((current.x, current.y))
+
+            # Goal check
+            if current.x == DEST_X and current.y == DEST_Y:
+                self.a_star_path = reconstruir_caminho(current)
+                self.a_star_path_index = 1
+                return
+
+            # Explore neighbors (4-directional)
+            for dx, dy in [(0,1),(1,0),(0,-1),(-1,0)]:
+                nx, ny = current.x + dx, current.y + dy
+                cell = self.map.get((nx, ny))
+                if cell is None or cell[0] == VS.OBST_WALL:
+                    continue
+                new_g = current.g_cost + cell[0]
+                if new_g < self.a_star_g_costs.get((nx, ny), float('inf')):
+                    self.a_star_g_costs[(nx, ny)] = new_g
+                    h = abs(nx - DEST_X) + abs(ny - DEST_Y)
+                    heapq.heappush(self.a_star_open_list, Node(nx, ny, new_g, h, current))
+        else:
+            # No more nodes to explore and no path found
+            self.a_star_started = False
+
     def deliberate(self) -> bool:
         """ The agent chooses the next action. The simulator calls this
         method at each cycle. Must be implemented in every agent"""
 
+        self.walk_time = abs(self.x) + abs(self.y)
+
         # forth and back: go, read the vital signals and come back to the position
 
-        time_tolerance = 0.5 * self.TLIM #3 * self.COST_DIAG * Explorer.MAX_DIFFICULTY + self.COST_READ
+        time_tolerance = 0.2 * self.TLIM #3 * self.COST_DIAG * Explorer.MAX_DIFFICULTY + self.COST_READ
 
         # keeps exploring while there is enough time
         if  self.walk_time < (self.get_rtime() - time_tolerance):

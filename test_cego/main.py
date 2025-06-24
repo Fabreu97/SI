@@ -92,7 +92,7 @@ def main(data_folder_name, config_ag_folder_name):
                     file.write(f"{MF}\n")
                     file.write(f"{MG}\n")
 
-                os.rename('constant.tmp', 'constant.txt')
+                os.replace('constant.tmp', 'constant.txt')
             except KeyboardInterrupt:
                 with open('constant.tmp', 'w') as file:
                     file.write(f"{better}\n")
