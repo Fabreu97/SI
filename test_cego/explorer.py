@@ -49,10 +49,6 @@ class Node:
         # Ajustado para usar g_cost, conforme o atributo real da classe Node
         return f"Node(x={self.x},y={self.y}|F:{self.f_cost}|G:{self.g_cost})"
 
-    # Distância de Manhattan ao destino fixo (0,0)
-    def manhattan(self):
-        return abs(self.x - 0) + abs(self.y - 0)
-
 # Reconstrói o caminho do destino até a origem usando os 'pais'
 def reconstruir_caminho(no_destino):
     caminho = []
@@ -92,7 +88,6 @@ class Explorer(AbstAgent):
         self.a_star_path = None         # O caminho final encontrado pelo A*
         self.a_star_path_index = 0      # Índice para seguir o caminho passo a passo
         self.a_star_started = False     # Flag para indicar se o A* já iniciou
-
 
         self.map.add((self.x, self.y), 1, VS.NO_VICTIM, self.check_walls_and_lim())
         self.visit_count[(0,0)] = 0
@@ -288,8 +283,8 @@ class Explorer(AbstAgent):
                 self.a_star_path_index = 1
                 return
 
-            # Explore neighbors (4-directional)
-            for dx, dy in [(0,1),(1,0),(0,-1),(-1,0)]:
+            # Explore neighbors (8-directional)
+            for dx, dy in [(0,1),(1,0),(1,1),(1,-1),(0,-1),(-1,0),(-1,-1),(-1,1)]:
                 nx, ny = current.x + dx, current.y + dy
                 cell = self.map.get((nx, ny))
                 if cell is None or cell[0] == VS.OBST_WALL:
