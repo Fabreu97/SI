@@ -32,7 +32,7 @@ class Stack:
 class Explorer(AbstAgent):
     """ class attribute """
     MAX_DIFFICULTY = 1             # the maximum degree of difficulty to enter into a cell
-    def __init__(self, env, config_file, resc, constant):
+    def __init__(self, env, config_file, resc, constant_k, constant_u):
         """ Construtor do agente random on-line
         @param env: a reference to the environment 
         @param config_file: the absolute path to the explorer's config file
@@ -64,13 +64,17 @@ class Explorer(AbstAgent):
         elif(self.NAME[-1] == '4'):
             self.init_direction = (-1,-1) # cima esquerda
         
-        self.A = constant[0]
-        self.B = constant[1]
-        self.C = constant[2]
-        self.D = constant[3]
-        self.E = constant[4]
-        self.F = constant[5]
-        self.G = constant[6]
+        self.constant_known_position = constant_k
+        self.constant_unknown_position = constant_u
+
+        self.A = self.constant_unknown_position[0]
+        self.B = self.constant_unknown_position[1]
+        self.C = self.constant_unknown_position[2]
+        self.D = self.constant_unknown_position[3]
+        self.E = self.constant_unknown_position[4]
+        self.F = self.constant_unknown_position[5]
+        self.G = self.constant_unknown_position[6]
+
         global victims_found
         victims_found.clear()
         self.delta = None
@@ -94,7 +98,23 @@ class Explorer(AbstAgent):
             return self.G # vizinho
         return 0
 
-    
+    def _unknown_position_constant(self):
+        self.A = self.constant_unknown_position[0]
+        self.B = self.constant_unknown_position[1]
+        self.C = self.constant_unknown_position[2]
+        self.D = self.constant_unknown_position[3]
+        self.E = self.constant_unknown_position[4]
+        self.F = self.constant_unknown_position[5]
+        self.G = self.constant_unknown_position[6]
+
+    def _known_position_constant(self):
+        self.A = self.constant_known_position[0]
+        self.B = self.constant_known_position[1]
+        self.C = self.constant_known_position[2]
+        self.D = self.constant_known_position[3]
+        self.E = self.constant_known_position[4]
+        self.F = self.constant_known_position[5]
+        self.G = self.constant_known_position[6]
 
     def get_next_position(self):
 
@@ -115,13 +135,15 @@ class Explorer(AbstAgent):
                 if not self.map.in_map(future_position):
                     visit_count = 0
                     unknown = 1
+                    self._unknown_position_constant()
                 else:
                     visit_count = self.visit_count[future_position]
                     unknown = 0
+                    self._known_position_constant()
                 distance = self._euclidean_distance(future_position)
                 if distance > self.greater_distance:
                     self.greater_distance = distance
-                distance = distance / self.greater_distance
+                dist_rel = distance / self.greater_distance
                 objective_direction = self._correct_direction(delta)
                 correct_quadrant = self._correct_quadrant(future_position)
                 if self.delta is None:
@@ -131,7 +153,7 @@ class Explorer(AbstAgent):
                         back = 1
                     else:
                         back = 0
-                value[i] = self.A * visit_count/self.max_visit + self.B * distance + self.C * objective_direction + self.D * unknown + self.E * back + self.F + correct_quadrant
+                value[i] = 10 * self.A * visit_count/self.max_visit + self.B * dist_rel + self.C * objective_direction + 100 * self.D * unknown + self.E * back + self.F + correct_quadrant
         direction = max(value, key=value.get)
         self.delta = direction
         position = (Explorer.AC_INCR[direction][0] + self.x, Explorer.AC_INCR[direction][1] + self.y) 
@@ -219,7 +241,7 @@ class Explorer(AbstAgent):
 
         # forth and back: go, read the vital signals and come back to the position
 
-        time_tolerance = 0.5 * self.TLIM #3 * self.COST_DIAG * Explorer.MAX_DIFFICULTY + self.COST_READ
+        time_tolerance = 0.1 * self.TLIM #3 * self.COST_DIAG * Explorer.MAX_DIFFICULTY + self.COST_READ
 
         # keeps exploring while there is enough time
         if  self.walk_time < (self.get_rtime() - time_tolerance):

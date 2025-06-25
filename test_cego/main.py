@@ -15,32 +15,60 @@ from rescuer import Rescuer
 file = None
 
 def main(data_folder_name, config_ag_folder_name):
-    MA: float
-    MB: float
-    MC: float
-    MD: float
-    ME: float
-    MF: float
-    MG: float
-    A: float
-    B: float
-    C: float
-    D: float
-    E: float
-    F: float
-    G: float
-    lista = []
-    with open("constant.txt", "r") as file:
+    KMA: float
+    KMB: float
+    KMC: float
+    KMD: float
+    KME: float
+    KMF: float
+    KMG: float
+    KA: float
+    KB: float
+    KC: float
+    KD: float
+    KE: float
+    KF: float
+    KG: float
+
+    UMA: float
+    UMB: float
+    UMC: float
+    UMD: float
+    UME: float
+    UMF: float
+    UMG: float
+    UA: float
+    UB: float
+    UC: float
+    UD: float
+    UE: float
+    UF: float
+    UG: float
+
+    klist = []
+    ulist = []
+    with open("constant_known_position.txt", "r") as file:
         for line in file:
-            lista.append(float(line.strip('\n')))
-    better = lista[0]
-    A = lista[1]
-    B = lista[2]
-    C = lista[3]
-    D = lista[4]
-    E = lista[5]
-    F = lista[6]
-    G = lista[7]
+            klist.append(float(line.strip('\n')))
+
+    with open("constant_unknown_position.txt", "r") as file:
+        for line in file:
+            ulist.append(float(line.strip('\n')))
+    better = ulist[0]
+    KMA = KA = klist[1]
+    KMB = KB = klist[2]
+    KMC = KC = klist[3]
+    KMD = KD = klist[4]
+    KME = KE = klist[5]
+    KMF = KF = klist[6]
+    KMG = KG = klist[7]
+    UMA = UA = ulist[1]
+    UMB = UB = ulist[2]
+    UMC = UC = ulist[3]
+    UMD = UD = ulist[4]
+    UME = UE = ulist[5]
+    UMF = UF = ulist[6]
+    UMG = UG = ulist[7]
 
     while True:
         # Set the path to config files and data files for the environment
@@ -61,56 +89,85 @@ def main(data_folder_name, config_ag_folder_name):
         for exp in range(1, 5):
             filename = f"explorer_{exp:1d}_config.txt"
             explorer_file = os.path.join(config_ag_folder, filename)
-            Explorer(env, explorer_file, master_rescuer, (A,B,C,D,E,F,G))
+            Explorer(env, explorer_file, master_rescuer, (KA,KB,KC,KD,KE,KF,KG), (UA,UB,UC,UD,UE,UF,UG))
 
         # Run the environment simulator
         env.run()
         if len(victims_found) > better:
             better = len(victims_found)
-            MA = A
-            MB = B
-            MC = C
-            MD = D
-            ME = E
-            MF = F
-            MG = G
-            #print(f"Vítimas encontradas: {len(victims_found)}")
-            #print(f"Best A: {MA}")
-            #print(f"Best B: {MB}")
-            #print(f"Best C: {MC}")
-            #print(f"Best D: {MD}")
-            #print(f"Best E: {ME}")
-            #print(f"Best F: {MF}")
+            UMA = UA
+            UMB = UB
+            UMC = UC
+            UMD = UD
+            UME = UE
+            UMF = UF
+            UMG = UG
+            KMA = KA
+            KMB = KB
+            KMC = KC
+            KMD = KD
+            KME = KE
+            KMF = KF
+            KMG = KG
             try:
-                with open('constant.tmp', 'w') as file:
+                with open('constant_known_position.tmp', 'w') as file:
                     file.write(f"{better}\n")
-                    file.write(f"{MA}\n")
-                    file.write(f"{MB}\n")
-                    file.write(f"{MC}\n")
-                    file.write(f"{MD}\n")
-                    file.write(f"{ME}\n")
-                    file.write(f"{MF}\n")
-                    file.write(f"{MG}\n")
+                    file.write(f"{KMA}\n")
+                    file.write(f"{KMB}\n")
+                    file.write(f"{KMC}\n")
+                    file.write(f"{KMD}\n")
+                    file.write(f"{KME}\n")
+                    file.write(f"{KMF}\n")
+                    file.write(f"{KMG}\n")
 
-                os.rename('constant.tmp', 'constant.txt')
+                os.rename('constant_known_position.tmp', 'constant_known_position.txt')
             except KeyboardInterrupt:
-                with open('constant.tmp', 'w') as file:
+                with open('constant_known_position.tmp', 'w') as file:
                     file.write(f"{better}\n")
-                    file.write(f"{MA}\n")
-                    file.write(f"{MB}\n")
-                    file.write(f"{MC}\n")
-                    file.write(f"{MD}\n")
-                    file.write(f"{ME}\n")
-                    file.write(f"{MF}\n")
-                    file.write(f"{MG}\n")
-        A = random.uniform(-1, 1)
-        B = random.uniform(-1, 1)
-        C = random.uniform(-1, 1)
-        D = random.uniform(-1, 1)
-        E = random.uniform(-1, 1)
-        F = random.uniform(-1, 1)
-        G = random.uniform(-1, 1)
-        
+                    file.write(f"{KMA}\n")
+                    file.write(f"{KMB}\n")
+                    file.write(f"{KMC}\n")
+                    file.write(f"{KMD}\n")
+                    file.write(f"{KME}\n")
+                    file.write(f"{KMF}\n")
+                    file.write(f"{KMG}\n")
+            try:
+                with open('constant_unknown_position.tmp', 'w') as file:
+                    file.write(f"{better}\n")
+                    file.write(f"{UMA}\n")
+                    file.write(f"{UMB}\n")
+                    file.write(f"{UMC}\n")
+                    file.write(f"{UMD}\n")
+                    file.write(f"{UME}\n")
+                    file.write(f"{UMF}\n")
+                    file.write(f"{UMG}\n")
+
+                os.rename('constant_unknown_position.tmp', 'constant_unknown_position.txt')
+            except KeyboardInterrupt:
+                with open('constant_unknown_position.tmp', 'w') as file:
+                    file.write(f"{better}\n")
+                    file.write(f"{UMA}\n")
+                    file.write(f"{UMB}\n")
+                    file.write(f"{UMC}\n")
+                    file.write(f"{UMD}\n")
+                    file.write(f"{UME}\n")
+                    file.write(f"{UMF}\n")
+                    file.write(f"{UMG}\n")
+        KA = KMA + random.uniform(-0.2, 0.2)
+        KB = KMB + random.uniform(-0.2, 0.2)
+        KC = KMC + random.uniform(-0.2, 0.2)
+        KD = KMD + random.uniform(-0.2, 0.2)
+        KE = KME + random.uniform(-0.2, 0.2)
+        KF = KMF + random.uniform(-0.2, 0.2)
+        KG = KMG + random.uniform(-0.2, 0.2)
+        UA = UMA + random.uniform(-0.2, 0.2)
+        UB = UMB + random.uniform(-0.2, 0.2)
+        UC = UMC + random.uniform(-0.2, 0.2)
+        UD = 1.0
+        UE = UME + random.uniform(-0.2, 0.2)
+        UF = UMF + random.uniform(-0.2, 0.2)
+        UG = UMG + random.uniform(-0.2, 0.2)
+
 if __name__ == '__main__':
     """ To get data from a different folder than the default called data
     pass it by the argument line"""
