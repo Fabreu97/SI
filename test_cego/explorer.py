@@ -153,7 +153,7 @@ class Explorer(AbstAgent):
                         back = 1
                     else:
                         back = 0
-                value[i] = 10 * self.A * visit_count/self.max_visit + self.B * dist_rel + self.C * objective_direction + 100 * self.D * unknown + self.E * back + self.F + correct_quadrant
+                value[i] = self.A * visit_count/self.max_visit + self.B * dist_rel + self.C * objective_direction + self.D * unknown + self.E * back + self.F + correct_quadrant
         direction = max(value, key=value.get)
         self.delta = direction
         position = (Explorer.AC_INCR[direction][0] + self.x, Explorer.AC_INCR[direction][1] + self.y) 
