@@ -86,8 +86,8 @@ def main(data_folder_name, config_ag_folder_name):
                         file.write(f"{const}\n")
         max = 1.0
         for i in range(len(better_const_u)):
-            constant_k[i] = better_const_k[i] + random.uniform(-0.02, 0.02)
-            constant_u[i] = better_const_u[i] + random.uniform(-0.02, 0.02)
+            constant_k[i] = better_const_k[i] + random.uniform(-0.1, 0.1)
+            constant_u[i] = better_const_u[i] + random.uniform(-0.1, 0.1)
             if constant_k[i] > max:
                 max = constant_k[i]
             if constant_u[i] > max:
