@@ -19,11 +19,11 @@ def main(data_folder_name, config_ag_folder_name):
     constant_k = []
     constant_u = []
 
-    with open("constant_known_position.txt", "r") as file:
+    with open("explorer_constant/constant_known_position.txt", "r") as file:
         for line in file:
             constant_k.append(float(line.strip('\n')))
 
-    with open("constant_unknown_position.txt", "r") as file:
+    with open("explorer_constant/constant_unknown_position.txt", "r") as file:
         for line in file:
             constant_u.append(float(line.strip('\n')))
 

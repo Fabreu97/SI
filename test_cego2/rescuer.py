@@ -22,8 +22,10 @@ from vs.constants import VS
 from bfs import BFS
 from abc import ABC, abstractmethod
 
-# Biblioteca para o cluster utilizando o algoritmo K-means
-from sklearn.cluster import KMeans
+import time
+from sklearn.cluster import KMeans # Biblioteca para o cluster utilizando o algoritmo K-means
+from a_star import Node, eucliadian_distance, movements_to_goal
+import heapq
 
 ## Classe que define o Agente Rescuer com um plano fixo
 class Rescuer(AbstAgent):
@@ -130,12 +132,64 @@ class Rescuer(AbstAgent):
         new_sequences = []
 
         # Implementar o Têmpera Simulada
+        execution_time = 2.0
+        start = time.time()
+        end =time.time()
 
+        keys = list(self.sequences[0].keys())
+        sequence = list(self.sequences[0].values()) # dict
+        position_list = [item[0] for item in sequence]
+        index_list = list(range(0, len(sequence)))
+        t = 0.0
+        while execution_time > t:
+            current_value = self._sum_euclian_distance_of_the_sequence(seq = position_list)
+            possibles_exchanges = list(range(0, len(sequence)))
+            best_value_neighbor = current_value + 10
+            i1, i2 = 0,0 
+            
+            # Obtendo o melhor vizinho
+            while(len(possibles_exchanges) > 2):
+                index1 = random.choice(possibles_exchanges)
+                possibles_exchanges.remove(index1)
+                index2 = random.choice(possibles_exchanges)
+                possibles_exchanges.remove(index2)
+                
+                #troca
+                position_list[index1], position_list[index2] = position_list[index2], position_list[index1]
+                
+                neighbor = self._sum_euclian_distance_of_the_sequence(seq = position_list)
+                if(best_value_neighbor > neighbor):
+                    i1, i2 = index1, index2
+                    best_value_neighbor = neighbor
+                
+                #destroca
+                position_list[index1], position_list[index2] = position_list[index2], position_list[index1]
+            
+            T = self._scheduler(t, execution_time)
+            delta_value = best_value_neighbor - current_value
+            if delta_value > 0.0:
+                position_list[i1], position_list[i2] = position_list[i2], position_list[i1]
+                index_list[i1], index_list[i2] = index_list[i2], index_list[i1]
+            else:
+                prob = (math.e) ** (delta_value / T)
+                weights = [prob, 1 - prob]
+                if random.choices([True, False], weights=weights, k=1)[0]:
+                    position_list[i1], position_list[i2] = position_list[i2], position_list[i1]
+                    index_list[i1], index_list[i2] = index_list[i2], index_list[i1]
+
+            end = time.time()
+            t = end - start
+        seq_dict = {}
+        for index in index_list:
+            seq_dict[keys[index]] = sequence[index]
+        new_sequences.append(seq_dict)
+        
+        """
         for seq in self.sequences:   # a list of sequences, being each sequence a dictionary
             seq = dict(sorted(seq.items(), key=lambda item: item[0])) # Aluno: está ordenando pelo coordenada y
             new_sequences.append(seq)       
             #print(f"{self.NAME} sequence of visit:\n{seq}\n")
-
+        """
         self.sequences = new_sequences
 
     def planner(self):
@@ -275,10 +329,58 @@ class Rescuer(AbstAgent):
             
         return True
     
-    def eucliadian_distance(coord1: tuple, coord2: tuple) -> float:
+    def _eucliadian_distance(self, coord1: tuple, coord2: tuple) -> float:
         return math.sqrt( (coord1[0] - coord2[0])**2 + (coord1[1] - coord2[1])**2 )
     
-    def _sum_euclian_distance_of_the_sequence(seq: list) -> float:
+    def _sum_euclian_distance_of_the_sequence(self, seq: list) -> float:
+        value = 0.0
         previous_position = (0,0)
         for position in seq:
+            value += self._eucliadian_distance(position, previous_position)
+            previous_position = position
+        value += self._eucliadian_distance(seq[-1], (0,0))
+        return value
             
+    def _scheduler(self, t: float, t_max: float) -> float:
+        probabilidade_final = 0.01      # 0%
+        probabilidade_inicial = 100     # 100%
+
+        return probabilidade_final + (probabilidade_inicial - probabilidade_final) * ((t_max - t)/t_max) ** 2
+
+    def a_star(self, initial_position: tuple, goal_position: tuple):
+        open_list = []
+        closed_list = set()
+        deltas = Rescuer.AC_INCR
+
+        initial_node = Node(position=initial_position, parent=None)
+        end_node = Node(position=goal_position, parent=None)
+        heapq.heappush(open_list, initial_node)
+        
+        while(len(open_list) > 0):
+            current_node: Node = heapq.heappop()
+            position = current_node.position
+            closed_list.add(position)
+
+            if position == goal_position:
+                return movements_to_goal(end_node)
+
+            for (dx,dy) in deltas:
+                candidate = (position[0] + dx, position[1] + dy)
+                if self.map.in_map(candidate):
+                    if candidate in closed_list:
+                        continue
+                    if self.map.get_difficulty() == VS.OBST_WALL:
+                        continue
+
+                    difficult = self.map.get_difficulty()
+                    node_candidate = Node(candidate, position)
+                    node_candidate.h = eucliadian_distance(goal_position, candidate)
+                    node_candidate.g = difficult + current_node.g
+                    node_candidate.f = node_candidate.h + node_candidate.g
+                    
+                    # Verifica se o vizinho já está na lista aberta com um custo g maior
+                    for open_node in open_list:
+                        if node_candidate == open_node and node_candidate.g > open_node.g:
+                            continue
+                    heapq.heappush(open_list, node_candidate)
+        return None
