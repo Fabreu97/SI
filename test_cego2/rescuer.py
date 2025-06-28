@@ -24,8 +24,7 @@ from abc import ABC, abstractmethod
 
 import time
 from sklearn.cluster import KMeans # Biblioteca para o cluster utilizando o algoritmo K-means
-from a_star import Node, eucliadian_distance, movements_to_goal
-import heapq
+from a_star import ASTAR
 
 ## Classe que define o Agente Rescuer com um plano fixo
 class Rescuer(AbstAgent):
@@ -132,7 +131,7 @@ class Rescuer(AbstAgent):
         new_sequences = []
 
         # Implementar o Têmpera Simulada
-        execution_time = 2.0
+        execution_time = 2
         start = time.time()
         end =time.time()
 
@@ -199,6 +198,7 @@ class Rescuer(AbstAgent):
 
         # let's instantiate the breadth-first search
         bfs = BFS(self.map, self.COST_LINE, self.COST_DIAG)
+        astar = ASTAR(self.map, self.COST_LINE, self.COST_DIAG)
 
         # for each victim of the first sequence of rescue for this agent, we're going go calculate a path
         # starting at the base - always at (0,0) in relative coords
@@ -214,6 +214,7 @@ class Rescuer(AbstAgent):
         for vic_id in sequence:
             goal = sequence[vic_id][0]
             plan, time = bfs.search(start, goal, self.plan_rtime)
+            #plan, time = astar.execute(start, goal, self.plan_rtime)
             self.plan = self.plan + plan
             self.plan_rtime = self.plan_rtime - time
             start = goal
@@ -221,6 +222,7 @@ class Rescuer(AbstAgent):
         # Plan to come back to the base
         goal = (0,0)
         plan, time = bfs.search(start, goal, self.plan_rtime)
+        #plan, time = astar.execute(start, goal, self.plan_rtime)
         self.plan = self.plan + plan
         self.plan_rtime = self.plan_rtime - time
            
@@ -346,41 +348,3 @@ class Rescuer(AbstAgent):
         probabilidade_inicial = 100     # 100%
 
         return probabilidade_final + (probabilidade_inicial - probabilidade_final) * ((t_max - t)/t_max) ** 2
-
-    def a_star(self, initial_position: tuple, goal_position: tuple):
-        open_list = []
-        closed_list = set()
-        deltas = Rescuer.AC_INCR
-
-        initial_node = Node(position=initial_position, parent=None)
-        end_node = Node(position=goal_position, parent=None)
-        heapq.heappush(open_list, initial_node)
-        
-        while(len(open_list) > 0):
-            current_node: Node = heapq.heappop()
-            position = current_node.position
-            closed_list.add(position)
-
-            if position == goal_position:
-                return movements_to_goal(end_node)
-
-            for (dx,dy) in deltas:
-                candidate = (position[0] + dx, position[1] + dy)
-                if self.map.in_map(candidate):
-                    if candidate in closed_list:
-                        continue
-                    if self.map.get_difficulty() == VS.OBST_WALL:
-                        continue
-
-                    difficult = self.map.get_difficulty()
-                    node_candidate = Node(candidate, position)
-                    node_candidate.h = eucliadian_distance(goal_position, candidate)
-                    node_candidate.g = difficult + current_node.g
-                    node_candidate.f = node_candidate.h + node_candidate.g
-                    
-                    # Verifica se o vizinho já está na lista aberta com um custo g maior
-                    for open_node in open_list:
-                        if node_candidate == open_node and node_candidate.g > open_node.g:
-                            continue
-                    heapq.heappush(open_list, node_candidate)
-        return None

@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from vs.abstract_agent import AbstAgent
 from vs.constants import VS
 from map import Map
+from a_star import ASTAR
 
 victims_found = {}
 
@@ -80,6 +81,10 @@ class Explorer(AbstAgent):
         self.delta = None
         self.greater_distance = 1.0
         self.max_visit = 1
+
+        self.cost = 0.0
+        self.astar = ASTAR(self.map, 1, 1.5)
+        self. planning_to_return = False
 
     def _euclidean_distance(self, coord: tuple) -> float:
         return math.sqrt(coord[0]**2 + coord[1]**2)
@@ -169,6 +174,11 @@ class Explorer(AbstAgent):
         # get an random increment for x and y       
         dx, dy = self.get_next_position()
 
+        if abs(dx) + abs(dy) == 2:
+            self.cost += 1.4
+        else:
+            self.cost += 1.0
+
         # Moves the body to another position  
         rtime_bef = self.get_rtime()
         result = self.walk(dx, dy)
@@ -221,8 +231,8 @@ class Explorer(AbstAgent):
 
     def come_back(self):
         dx, dy = self.walk_stack.pop()
-        dx = dx * -1
-        dy = dy * -1
+        #dx = dx * -1
+        #dy = dy * -1
 
         result = self.walk(dx, dy)
         if result == VS.BUMPED:
@@ -241,12 +251,28 @@ class Explorer(AbstAgent):
 
         # forth and back: go, read the vital signals and come back to the position
 
-        time_tolerance = 0.1 * self.TLIM #3 * self.COST_DIAG * Explorer.MAX_DIFFICULTY + self.COST_READ
+        if self.cost + 20 < self.get_rtime():
+            self.explore()
+            return True
+        
+        if not self.planning_to_return:
+            move, time = self.astar.execute((self.x, self.y), (0,0), self.get_rtime())
+            self.cost = time
+            if (self.cost + 20 > self.get_rtime()):
+                self.walk_stack.items = move[::-1]
+                self.planning_to_return = True
+            else:
+                self.explore()
+                return True
 
+
+        """
         # keeps exploring while there is enough time
         if  self.walk_time < (self.get_rtime() - time_tolerance):
             self.explore()
             return True
+
+        """
 
         # no more come back walk actions to execute or already at base
         if self.walk_stack.is_empty() or (self.x == 0 and self.y == 0):
