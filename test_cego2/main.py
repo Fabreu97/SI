@@ -5,7 +5,7 @@ import random
 
 ## importa classes
 from vs.environment import Env
-from explorer import Explorer, victims_found
+from explorer import Explorer
 from rescuer import Rescuer
 
 """

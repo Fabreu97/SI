@@ -251,14 +251,14 @@ class Explorer(AbstAgent):
 
         # forth and back: go, read the vital signals and come back to the position
 
-        if self.cost + 20 < self.get_rtime():
+        if self.cost + 5 < self.get_rtime():
             self.explore()
             return True
         
         if not self.planning_to_return:
             move, time = self.astar.execute((self.x, self.y), (0,0), self.get_rtime())
             self.cost = time
-            if (self.cost + 20 > self.get_rtime()):
+            if (self.cost + 5 > self.get_rtime()):
                 self.walk_stack.items = move[::-1]
                 self.planning_to_return = True
             else:
