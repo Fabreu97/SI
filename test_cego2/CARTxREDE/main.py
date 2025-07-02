@@ -1,10 +1,17 @@
+# Bibliotecas para Rede Neural
 from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from itertools import product
 
-MAX_LAYERS = 4
-MAX_PERCEPTRON_BY_LAYER = 4
+# Bibliotecas para Árvore de Decisão
+from sklearn.tree import DecisionTreeRegressor
+import matplotlib.pyplot as plt
+from sklearn import tree
+from sklearn.model_selection import GridSearchCV
+
+MAX_LAYERS = 5
+MAX_PERCEPTRON_BY_LAYER = 5
 RS = 42
 
 path_to_training_file = "../datasets/data_4000v/env_vital_signals.txt"
@@ -76,4 +83,32 @@ with open("result.txt", "w") as file:
     file.write(f"{best_activation}\n")
     file.write(f"{best_config}\n")
 
+
+## CART ##
+# Cuidado com overfitting se árvore for muito profunda
+# Pruning: poda da árvore para evitar overfitting
+
+# Parameters' definition
+parameters = {
+    'criterion': ['squared_error'],
+    'max_depth': [2, 6],
+    'min_samples_leaf': [2, 10]
+}
+
+regressor = DecisionTreeRegressor(random_state=42)
+
+# grid search using cross-validation
+# cv = 3 is the number of folds
+# scoring = 'f' the metric for chosing the best model
+clf = GridSearchCV(regressor, parameters, cv=3, scoring='r2', verbose=4)
+clf.fit(x_train, y_train)
+best_tree = clf.best_estimator_
+
+y_pred = best_tree.predict(x_test)
+print(f"Accurancy: {r2_score(y_pred, y_test): 10.2f}")
+
+plt.figure(figsize=(16, 10))
+tree.plot_tree(best_tree, filled=True)
+plt.title("Árvore de Regressão - CART")
+plt.show()
 
