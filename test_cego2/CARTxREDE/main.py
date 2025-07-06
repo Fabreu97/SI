@@ -171,6 +171,11 @@ print("Dados das 800 vítimas lidos . . .")
 
 y_pred = network.predict(x_800v)
 print(f"Accurracy: {r2_score(y_800v_grav, y_pred)}")
+
+network.fit(x_800v, y_800v_grav)
+y_pred = network.predict(x_test)
+print(f"Accurracy: {r2_score(y_test, y_pred)}")
+
 """
 
 # Comentarios sobre a rede neural

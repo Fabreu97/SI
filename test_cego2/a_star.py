@@ -7,6 +7,7 @@
 
 import math
 import heapq
+from vs.constants import VS
 
 ######################################
 # Node
@@ -49,6 +50,23 @@ class ASTAR:
             (-1, -1)             # ul: Up left diagonal
         ]
     
+        # Find possible actions of a given position (state)
+    def get_possible_actions(self, pos):
+        x, y = pos
+        actions = []
+
+
+        if self.map.in_map(pos):
+            incr = 0
+            for delta in self.deltas:
+                possible_pos = self.map.get_actions_results(pos)
+                if possible_pos[incr] == VS.CLEAR:
+                    actions.append(delta)
+
+                incr += 1
+            
+        return actions
+
     def _movements_to_goal(self, current_node: Node):
         movements = []
         current = current_node
@@ -92,11 +110,14 @@ class ASTAR:
                 return self._movements_to_goal(current_node) # _movements_to_goal pode ser simplificado
 
             position = current_node.position
+            deltas_pos = self.get_possible_actions(position)
             for index, (dx, dy) in enumerate(self.deltas):
                 candidate = (position[0] + dx, position[1] + dy)
                 if not self.map.in_map(candidate):
                     continue
-                
+
+                if (dx,dy) not in deltas_pos:
+                    continue
                 if index % 2:
                     cost = self.cost_diag
                 else:

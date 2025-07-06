@@ -26,6 +26,13 @@ import time
 from sklearn.cluster import KMeans # Biblioteca para o cluster utilizando o algoritmo K-means
 from a_star import ASTAR
 
+# Bibliotecas para Rede Neural
+from sklearn.neural_network import MLPRegressor
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
+from itertools import product
+import joblib
+
 ## Classe que define o Agente Rescuer com um plano fixo
 class Rescuer(AbstAgent):
     def __init__(self, env, config_file, nb_of_explorers=1,clusters=[]):
@@ -113,9 +120,16 @@ class Rescuer(AbstAgent):
             This method should add the vital signals(vs) of the self.victims dictionary with these two values.
 
             This implementation assigns random values to both, severity value and class"""
-
+        # 
+        network: MLPRegressor = joblib.load("./CARTxREDE/modelo_completo_treinado.joblib")
         for vic_id, values in self.victims.items():
-            severity_value = random.uniform(0.1, 99.9)          # to be replaced by a regressor 
+            qPA = values[1][3]
+            pulso = values[1][4]
+            freq_resp = values[1][5]
+            severity_value = network.predict([qPA, pulso, freq_resp])
+            """ @TODO """
+            if severity_value < 25.0:
+                pass
             severity_class = random.randint(1, 4)               # to be replaced by a classifier
             values[1].extend([severity_value, severity_class])  # append to the list of vital signals; values is a pair( (x,y), [<vital signals list>] )
 
@@ -211,18 +225,23 @@ class Rescuer(AbstAgent):
 
         sequence = self.sequences[0]
         start = (0,0) # always from starting at the base
+        
         for vic_id in sequence:
             goal = sequence[vic_id][0]
-            plan, time = bfs.search(start, goal, self.plan_rtime)
-            #plan, time = astar.execute(start, goal, self.plan_rtime)
-            self.plan = self.plan + plan
-            self.plan_rtime = self.plan_rtime - time
+            #plan, time = bfs.search(start, goal, self.plan_rtime)
+            plan, time = astar.execute(start, goal, self.plan_rtime)
+            plan_back, time_back =  bfs.search(goal, (0,0), self.plan_rtime)
+            if plan is not None and ((time + time_back) < self.plan_rtime):
+                self.plan = self.plan + plan
+                self.plan_rtime = self.plan_rtime - time
+            else:
+                break
             start = goal
 
         # Plan to come back to the base
         goal = (0,0)
-        plan, time = bfs.search(start, goal, self.plan_rtime)
-        #plan, time = astar.execute(start, goal, self.plan_rtime)
+        plan, time = astar.execute(start, goal, self.plan_rtime)
+        #plan, time = bfs.search(start, goal, self.plan_rtime)
         self.plan = self.plan + plan
         self.plan_rtime = self.plan_rtime - time
            
