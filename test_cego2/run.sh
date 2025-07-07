@@ -2,7 +2,7 @@
 
 # This script is used to run the Python script with the specified arguments.
 ARG=(
-    "datasets/data_430v_94x94"
+    "datasets/data_430v_100x100"
     "cfg_1"
 )
 

@@ -123,15 +123,23 @@ class Rescuer(AbstAgent):
         # 
         network: MLPRegressor = joblib.load("./CARTxREDE/modelo_completo_treinado.joblib")
         for vic_id, values in self.victims.items():
-            qPA = values[1][3]
-            pulso = values[1][4]
-            freq_resp = values[1][5]
-            severity_value = network.predict([qPA, pulso, freq_resp])
+            x,y = values[0]
+            qPA = float(values[1][3])
+            pulso = float(values[1][4])
+            freq_resp = float(values[1][5])
+            severity_value = float(network.predict([[qPA, pulso, freq_resp]])[0])
             """ @TODO """
             if severity_value < 25.0:
-                pass
-            severity_class = random.randint(1, 4)               # to be replaced by a classifier
+                severity_class = 1
+            elif severity_value < 50.0:
+                severity_class = 2
+            elif severity_value < 75.0:
+                severity_class = 3
+            else:
+                severity_class = 4             # to be replaced by a classifier
             values[1].extend([severity_value, severity_class])  # append to the list of vital signals; values is a pair( (x,y), [<vital signals list>] )
+            with open("tools/results/pred.txt", "a") as file:
+                file.write(f"{vic_id},{x},{y},{severity_value}, {severity_class}\n")
 
 
     def sequencing(self):
@@ -179,7 +187,7 @@ class Rescuer(AbstAgent):
                 position_list[index1], position_list[index2] = position_list[index2], position_list[index1]
             
             T = self._scheduler(t, execution_time)
-            delta_value = best_value_neighbor - current_value
+            delta_value = (best_value_neighbor - current_value) * -1
             if delta_value > 0.0:
                 position_list[i1], position_list[i2] = position_list[i2], position_list[i1]
                 index_list[i1], index_list[i2] = index_list[i2], index_list[i1]

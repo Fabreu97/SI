@@ -166,7 +166,7 @@ with open(path_to_casualty_severity_prediction_file, "r") as file:
 
         x_800v.append([qPA, pulso, freq_resp])
         y_800v_grav.append(grav)
-
+"""
 print("Dados das 800 vítimas lidos . . .")
 
 y_pred = network.predict(x_800v)
@@ -175,9 +175,74 @@ print(f"Accurracy: {r2_score(y_800v_grav, y_pred)}")
 network.fit(x_800v, y_800v_grav)
 y_pred = network.predict(x_test)
 print(f"Accurracy: {r2_score(y_test, y_pred)}")
-
 """
 
+# Irei criar duas redes neurais regressor para colocar na tabela
+# Rede Neural 2:
+"""
+solver = 'sgd'
+momentum = 0.9
+learn_init = 0.0005
+max_iter = 10000
+activations = ['relu', 'tanh']
+layers = (30,20)
+alpha = 0.001
+
+best_actv = None
+best_r2 = 0.0
+for actv in activations:
+    network2 = MLPRegressor(hidden_layer_sizes=layers, solver=solver, momentum=momentum, learning_rate_init=learn_init, max_iter=10000, random_state=RS, activation=actv, alpha=alpha)
+    network2.fit(x_train, y_train)
+    y_pred = network2.predict(x_test)
+    r2 = r2_score(y_pred=y_pred, y_true=y_test)
+    if r2 > best_r2:
+        best_r2 = r2
+        print(f"R²: {r2}")
+        best_actv = actv
+
+with open("config2.txt", "w") as file:
+    file.write(f"BEST_ACCURRACY: {best_r2}\n")
+    file.write(f"BEST_LAYERS_CONFIG: {layers}\n")
+    file.write(f"BEST_ACTIVATION_FUNCTION: {best_actv}\n")
+    file.write(f"BEST_SOLVER: {solver}\n")
+    file.write(f"BEST_ALPHA: {alpha}\n")
+    file.write(f"BEST_LEARNING_RATE_INIT: {learn_init}\n")
+    file.write(f"RANDON STATE: 42\n")
+
+
+# Rede Neural 3:
+
+solver = 'lbfgs'
+momentum = 0.9
+learn_init = 0.001
+max_iter = 10000
+activations = ['relu', 'identity', 'logistic', 'tanh']
+layers = (10,5,10)
+alpha = 0.001
+
+best_actv = None
+best_r2 = 0.0
+for actv in activations:
+    network2 = MLPRegressor(hidden_layer_sizes=layers, solver=solver, momentum=momentum, learning_rate_init=learn_init, max_iter=20000, random_state=RS, activation=actv, alpha=alpha)
+    network2.fit(x_train, y_train)
+    y_pred = network2.predict(x_test)
+    r2 = r2_score(y_pred=y_pred, y_true=y_test)
+    if r2 > best_r2:
+        best_r2 = r2
+        print(f"R²: {r2}")
+        best_actv = actv
+
+with open("config3.txt", "w") as file:
+    file.write(f"BEST_ACCURRACY: {best_r2}\n")
+    file.write(f"BEST_LAYERS_CONFIG: {layers}\n")
+    file.write(f"BEST_ACTIVATION_FUNCTION: {best_actv}\n")
+    file.write(f"BEST_SOLVER: {solver}\n")
+    file.write(f"BEST_ALPHA: {alpha}\n")
+    file.write(f"BEST_LEARNING_RATE_INIT: {learn_init}\n")
+    file.write(f"RANDON STATE: 42\n")
+
+
+"""
 # Comentarios sobre a rede neural
 #####################################################################################
 # Código inutil, porque mesmo utilizando a mesma configuração dos hiperparâmetros,  #
@@ -213,12 +278,16 @@ regressor = DecisionTreeRegressor(random_state=42)
 clf = GridSearchCV(regressor, parameters, cv=3, scoring='r2', verbose=4)
 clf.fit(x_train, y_train)
 best_tree = clf.best_estimator_
+best_param = clf.best_params_
+joblib.dump(best_tree, 'modelo_arvore_decisao.joblib')
+with open("config_tree.txt", "w") as file:
+    for key, value in best_param.items():
+        file.write(f"{key}: {value}\n")
 
 y_pred = best_tree.predict(x_test)
-print(f"Accurancy: {r2_score(y_pred, y_test): 10.2f}")
+print(f"R²: {r2_score(y_pred, y_test): 10.2f}")
 
 plt.figure(figsize=(16, 10))
 tree.plot_tree(best_tree, filled=True)
 plt.title("Árvore de Regressão - CART")
 plt.show()
-"""

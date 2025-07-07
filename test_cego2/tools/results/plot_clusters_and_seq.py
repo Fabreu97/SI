@@ -38,7 +38,7 @@ import sys
 ABS_COORDINATES = False
 
 # Input files and folders
-data_folder = "../../datasets/data_430v_94x94"
+data_folder = "../../datasets/data_430v_100x100"
 env_file = "env_config.txt"                       # the program concatenates data_folder + env_file
 obst_file = "env_obst.txt"                        # the program concatenates data_folder + obst_file                      
 victims_file = "env_victims.txt"                  # the program concatenates data_folder + victims_file   
@@ -396,3 +396,4 @@ while True:
             screen.blit(text, text_rect)
             # Update Pygame display
             pygame.display.update()
+    pygame.image.save(screen, "screenshot_tc1.png")
