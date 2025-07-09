@@ -1,0 +1,49 @@
+------------------------------------------------------------
+GENERAL METRICS
+
+Reference dataset: target.txt Length: 420
+Predict          : pred.txt Length: 196
+Matching rows    : 196
+
+------------------------------------------------------------
+REGRESSOR METRICS
+Root Mean Square Error (RMSE) for matching rows: 9.59
+
+------------------------------------------------------------
+CLASSIFICATION METRICS
+
+Confusion Matrix:
+[[43  7  0  0]
+ [ 9 67  0  0]
+ [ 0  4 27  0]
+ [ 0  0 39  0]]
+
+Accuracy: 0.6989795918367347
+
+Classification Report:
+              precision    recall  f1-score   support
+
+     Critico       0.83      0.86      0.84        50
+    Instavel       0.86      0.88      0.87        76
+ Pot Estavel       0.41      0.87      0.56        31
+     Estavel       0.00      0.00      0.00        39
+
+    accuracy                           0.70       196
+   macro avg       0.52      0.65      0.57       196
+weighted avg       0.61      0.70      0.64       196
+
+
+------------------------------------------------------------
+SPECIFIC METRICS
+
+   Critical victims   (1) =  50 out of 126 (39.7)%
+   Instable victims   (2) =  76 out of 144 (52.8)%
+   Pot. inst. victims (3) =  31 out of 76 (40.8)%
+   Stable victims     (4) =  39 out of 74 (52.7)%
+   --------------------------------------
+   Total of victims  = 196 (46.67%)
+
+   Weighted victims per severity = 31.24
+
+   Sum of gravities of matched victims = 8503.11 of a total of 17815.71
+     % of gravities of matched victims = 0.48
