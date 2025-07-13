@@ -1,0 +1,6 @@
+Mean Squared Error: 11.920108274074334
+BEST_HIDDEN_LAYER_SIZES: (10, 5)
+BEST_ACTIVATE_FUNCTION: tanh
+BEST_ALPHA: 0.001
+BEST_ALPHA: <bound method BaseEstimator.get_params of MLPRegressor(activation='tanh', alpha=0.001, hidden_layer_sizes=(10, 5),
+             max_iter=15000)>
