@@ -1,0 +1,6 @@
+Mean Squared Error: 15.250241707182578
+R2: 0.9429696698223612
+BEST_HIDDEN_LAYER_SIZES: (5, 3, 4, 4, 3)
+BEST_ACTIVATE_FUNCTION: tanh
+BEST_ALPHA: 0.001
+BEST_ALPHA: {'activation': 'tanh', 'alpha': 0.001, 'batch_size': 'auto', 'beta_1': 0.9, 'beta_2': 0.999, 'early_stopping': False, 'epsilon': 1e-08, 'hidden_layer_sizes': (5, 3, 4, 4, 3), 'learning_rate': 'constant', 'learning_rate_init': 0.001, 'loss': 'squared_error', 'max_fun': 15000, 'max_iter': 15000, 'momentum': 0.9, 'n_iter_no_change': 10, 'nesterovs_momentum': True, 'power_t': 0.5, 'random_state': None, 'shuffle': True, 'solver': 'adam', 'tol': 0.0001, 'validation_fraction': 0.1, 'verbose': False, 'warm_start': False}
